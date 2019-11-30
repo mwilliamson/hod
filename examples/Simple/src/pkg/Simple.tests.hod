@@ -1,4 +1,4 @@
-import Simple from Simple.pkg;
+import Simple from pkg;
 
 test "value is true" {
     assert(Simple.value);
