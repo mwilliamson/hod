@@ -21,8 +21,14 @@ private val tokeniser = RegexTokeniser(
 
         RegexTokeniser.rule(TokenType.INTEGER, "-?[0-9]+"),
 
-        symbol(TokenType.SYMBOL_DOT, "."),
+        symbol(TokenType.SYMBOL_BRACE_CLOSE, "}"),
+        symbol(TokenType.SYMBOL_BRACE_OPEN, "{"),
         symbol(TokenType.SYMBOL_COMMA, ","),
+        symbol(TokenType.SYMBOL_DOT, "."),
+        symbol(TokenType.SYMBOL_EQUALS, "="),
+        symbol(TokenType.SYMBOL_PAREN_CLOSE, ")"),
+        symbol(TokenType.SYMBOL_PAREN_OPEN, "("),
+        symbol(TokenType.SYMBOL_SEMICOLON, ";"),
 
         RegexTokeniser.rule(TokenType.IDENTIFIER, identifierPattern),
         RegexTokeniser.rule(TokenType.STRING, unterminatedStringPattern + "\""),
@@ -58,8 +64,14 @@ internal enum class TokenType {
 
     STRING,
 
+    SYMBOL_BRACE_CLOSE,
+    SYMBOL_BRACE_OPEN,
     SYMBOL_COMMA,
     SYMBOL_DOT,
+    SYMBOL_EQUALS,
+    SYMBOL_PAREN_CLOSE,
+    SYMBOL_PAREN_OPEN,
+    SYMBOL_SEMICOLON,
 
     UNKNOWN,
 
