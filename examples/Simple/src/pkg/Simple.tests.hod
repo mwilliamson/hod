@@ -1,0 +1,5 @@
+import Simple from Simple.pkg;
+
+test "value is true" {
+    assert(Simple.value;
+}
