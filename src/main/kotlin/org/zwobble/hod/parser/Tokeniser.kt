@@ -11,8 +11,13 @@ private const val identifierPattern = "[A-Za-z][A-Za-z0-9]*"
 
 private val tokeniser = RegexTokeniser(
     TokenType.UNKNOWN, listOf(
+        keyword(TokenType.KEYWORD_EXPORT, "export"),
         keyword(TokenType.KEYWORD_FALSE, "false"),
+        keyword(TokenType.KEYWORD_FROM, "from"),
+        keyword(TokenType.KEYWORD_IMPORT, "import"),
+        keyword(TokenType.KEYWORD_TEST, "test"),
         keyword(TokenType.KEYWORD_TRUE, "true"),
+        keyword(TokenType.KEYWORD_VAL, "val"),
 
         RegexTokeniser.rule(TokenType.INTEGER, "-?[0-9]+"),
 
@@ -43,8 +48,13 @@ internal enum class TokenType {
 
     INTEGER,
 
+    KEYWORD_EXPORT,
     KEYWORD_FALSE,
+    KEYWORD_FROM,
+    KEYWORD_IMPORT,
+    KEYWORD_TEST,
     KEYWORD_TRUE,
+    KEYWORD_VAL,
 
     STRING,
 
