@@ -6,9 +6,9 @@ package:
 stdlib-tests: package run-stdlib-tests
 
 run-stdlib-tests:
-	./shed stdlib StdlibTests.Main --backend=javascript
-	./shed stdlib StdlibTests.Main --backend=python
-	./shed stdlib StdlibTests.Main
+	./hod stdlib StdlibTests.Main --backend=javascript
+	./hod stdlib StdlibTests.Main --backend=python
+	./hod stdlib StdlibTests.Main
 
 test: stdlib-tests
 	mvn test

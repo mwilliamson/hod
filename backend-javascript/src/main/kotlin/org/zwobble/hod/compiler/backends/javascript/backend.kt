@@ -1,0 +1,135 @@
+package org.zwobble.hod.compiler.backends.javascript
+
+import org.zwobble.hod.compiler.Module
+import org.zwobble.hod.compiler.ModuleSet
+import org.zwobble.hod.compiler.ast.Identifier
+import org.zwobble.hod.compiler.ast.NodeSource
+import org.zwobble.hod.compiler.backends.Backend
+import org.zwobble.hod.compiler.backends.javascript.ast.JavascriptAssignmentNode
+import org.zwobble.hod.compiler.backends.javascript.ast.JavascriptExpressionStatementNode
+import org.zwobble.hod.compiler.backends.javascript.ast.JavascriptStringLiteralNode
+import org.zwobble.hod.compiler.backends.javascript.ast.JavascriptVariableReferenceNode
+import org.zwobble.hod.compiler.backends.readResourceText
+import org.zwobble.hod.compiler.backends.resourceStream
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStreamWriter
+import java.nio.charset.StandardCharsets
+import java.nio.file.Path
+
+val backend = object: Backend {
+    override fun compile(moduleSet: ModuleSet, target: Path) {
+        for (module in moduleSet.modules) {
+            when (module) {
+                is Module.Hod -> {
+                    val javascriptModule = compileModule(
+                        module = module
+                    )
+                    writeModule(target, javascriptModule)
+                }
+                is Module.Native -> {
+                    moduleWriter(target, module.name.map(Identifier::value)).use { writer ->
+                        nativeModuleSource(module).reader().use { reader ->
+                            reader.copyTo(writer)
+                        }
+                    }
+                }
+            }
+        }
+
+        writeModule(target, builtinModule())
+    }
+
+    private fun nativeModuleSource(module: Module.Native): InputStream {
+        val resourcePrefix = "org/zwobble/hod/compiler/backends/javascript/modules/"
+        val resourceName = resourcePrefix + module.name.map { part -> part.value }.joinToString("/") + ".js"
+        return resourceStream(resourceName)
+    }
+
+    private fun writeModule(target: Path, javascriptModule: JavascriptModule) {
+        moduleWriter(target, javascriptModule.name).use { writer ->
+            writer.write(javascriptModule.source)
+        }
+    }
+
+    private fun moduleWriter(target: Path, moduleName: List<String>): OutputStreamWriter {
+        val modulePath = modulePath(moduleName)
+        val destination = target.resolve(modulePath)
+        destination.parent.toFile().mkdirs()
+        return destination.toFile().writer(StandardCharsets.UTF_8)
+    }
+
+    override fun run(path: Path, module: List<String>): Int {
+        val process = ProcessBuilder("node", module.joinToString("/") + ".js")
+            .inheritIO()
+            .directory(path.toFile())
+            .start()
+        return process.waitFor()
+    }
+}
+
+fun compile(frontendResult: ModuleSet, target: Path) {
+    backend.compile(frontendResult, target = target)
+}
+
+private fun modulePath(path: List<String>) = path.joinToString(File.separator) + ".js"
+
+private fun compileModule(module: Module.Hod): JavascriptModule {
+    val generateCode = generateCode(module = module)
+
+    // TODO: remove duplication with import code in codeGenerator
+    val builtinsPath = "./" + "../".repeat(module.name.size - 1) + "builtins"
+    val builtins = "const \$hod = require(\"$builtinsPath\");\n" + builtinNames.map { builtinName ->
+        "const ${builtinName} = \$hod.${builtinName};\n"
+    }.joinToString("")
+    val main = if (module.hasMain()) {
+        """
+            if (require.main === module) {
+                (function() {
+                    const exitCode = main();
+                    if (exitCode != null) {
+                        process.exit(Number(exitCode));
+                    }
+                })();
+            }
+        """.trimIndent()
+    } else {
+        ""
+    }
+    // TODO: test module name
+    val moduleName = JavascriptExpressionStatementNode(
+        JavascriptAssignmentNode(
+            target = JavascriptVariableReferenceNode(
+                "moduleName",
+                source = NodeSource(module.node)
+            ),
+            expression = JavascriptStringLiteralNode(
+                module.name.map(Identifier::value).joinToString("."),
+                source = NodeSource(module.node)
+            ),
+            source = NodeSource(module.node)
+        ),
+        source = NodeSource(module.node)
+    )
+    val contents = builtins +
+        serialise(moduleName, indentation = 0) +
+        "(function() {\n" + serialise(generateCode) + main + "})();\n"
+    return JavascriptModule(
+        name = module.name.map(Identifier::value),
+        source = contents
+    )
+}
+
+private class JavascriptModule(val name: List<String>, val source: String)
+
+private fun builtinModule(): JavascriptModule {
+    val contents = readResourceText("org/zwobble/hod/compiler/backends/javascript/modules/builtins.js")
+    return JavascriptModule(
+        name = listOf("builtins"),
+        source = contents
+    )
+}
+
+val builtinNames = listOf(
+    "intToString"
+);

@@ -2,41 +2,41 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
-        <artifactId>shed-compiler</artifactId>
-        <groupId>org.shedlang</groupId>
+        <groupId>org.zwobble.hod</groupId>
+        <artifactId>hod-compiler</artifactId>
         <version>0.1.0-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>shed-compiler-cli</artifactId>
+    <artifactId>hod-compiler-cli</artifactId>
     <packaging>jar</packaging>
 
-    <name>org.shedlang shed-compiler-cli</name>
+    <name>org.zwobble.hod hod-compiler-cli</name>
     <dependencies>
         <dependency>
-            <groupId>org.shedlang</groupId>
-            <artifactId>shed-compiler-backend-common</artifactId>
+            <groupId>org.zwobble.hod</groupId>
+            <artifactId>hod-compiler-backend-common</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.shedlang</groupId>
-            <artifactId>shed-compiler-backend-javascript</artifactId>
+            <groupId>org.zwobble.hod</groupId>
+            <artifactId>hod-compiler-backend-javascript</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.shedlang</groupId>
-            <artifactId>shed-compiler-backend-python</artifactId>
+            <groupId>org.zwobble.hod</groupId>
+            <artifactId>hod-compiler-backend-python</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.shedlang</groupId>
-            <artifactId>shed-compiler-frontend</artifactId>
+            <groupId>org.zwobble.hod</groupId>
+            <artifactId>hod-compiler-frontend</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.shedlang</groupId>
-            <artifactId>shed-compiler-stack-interpreter</artifactId>
+            <groupId>org.zwobble.hod</groupId>
+            <artifactId>hod-compiler-stack-interpreter</artifactId>
             <version>0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
@@ -99,7 +99,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>org.shedlang.compiler.cli.ShedcCli</mainClass>
+                            <mainClass>org.zwobble.hod.compiler.cli.HodcCli</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

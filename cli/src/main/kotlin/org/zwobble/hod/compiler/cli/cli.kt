@@ -1,0 +1,120 @@
+package org.zwobble.hod.compiler.cli
+
+import com.xenomachina.argparser.ArgParser
+import com.xenomachina.argparser.default
+import com.xenomachina.argparser.mainBody
+import org.zwobble.hod.compiler.ast.Identifier
+import org.zwobble.hod.compiler.backends.Backend
+import org.zwobble.hod.compiler.readPackage
+import org.zwobble.hod.compiler.stackinterpreter.RealWorld
+import org.zwobble.hod.compiler.stackinterpreter.executeMain
+import org.zwobble.hod.compiler.stackinterpreter.loadModuleSet
+import org.zwobble.hod.compiler.typechecker.SourceError
+import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.system.exitProcess
+
+object HodCli {
+    @JvmStatic
+    fun main(rawArguments: Array<String>) {
+        val exitCode = mainBody {
+            run(rawArguments)
+        }
+        System.exit(exitCode)
+    }
+
+    private fun run(rawArguments: Array<String>): Int {
+        val arguments = Arguments(ArgParser(rawArguments))
+        val mainName = arguments.mainModule.split(".")
+
+        val tempDir = createTempDir()
+        try {
+            val base = Paths.get(arguments.source)
+            val backend = arguments.backend
+            if (backend == null) {
+                return onErrorPrintAndExit {
+                    val source = readPackage(base, arguments.mainModule)
+                    val image = loadModuleSet(source)
+                    executeMain(
+                        mainModule = readMainModuleName(arguments.mainModule),
+                        image = image,
+                        world = RealWorld
+                    )
+                }
+            } else {
+                compile(
+                    base = base,
+                    mainName = arguments.mainModule,
+                    backend = backend,
+                    target = tempDir.toPath()
+                )
+                return backend.run(tempDir.toPath(), mainName)
+            }
+        } finally {
+            tempDir.deleteRecursively()
+        }
+    }
+
+    private class Arguments(parser: ArgParser) {
+        val source by parser.hodSource()
+        val mainModule by parser.positional("MAIN", help = "main module to run")
+        val backend by parser.hodBackends().default(null)
+
+        init {
+            parser.force()
+        }
+    }
+}
+
+object HodcCli {
+    @JvmStatic
+    fun main(rawArguments: Array<String>) {
+        return mainBody {
+            run(rawArguments)
+        }
+    }
+
+    private fun run(rawArguments: Array<String>) {
+        val arguments = Arguments(ArgParser(rawArguments))
+        compile(
+            base = Paths.get(arguments.source),
+            mainName = arguments.mainModule,
+            backend = arguments.backend,
+            target = Paths.get(arguments.outputPath)
+        )
+    }
+
+    private class Arguments(parser: ArgParser) {
+        val source by parser.hodSource()
+        val mainModule by parser.positional("MAIN", help = "main module to run")
+        val outputPath by parser.storing("--output-path",   "-o", help = "path to output directory")
+        val backend by parser.hodBackends()
+
+        init {
+            parser.force()
+        }
+    }
+}
+
+private fun compile(base: Path, mainName: String, backend: Backend, target: Path) {
+    onErrorPrintAndExit {
+        val result = readPackage(base, mainName)
+        backend.compile(result, target = target)
+    }
+}
+
+private fun <T> onErrorPrintAndExit(func: () -> T): T {
+    try {
+        return func()
+    } catch (error: SourceError) {
+        System.err.println("Error: " + error.message)
+        System.err.println(error.source.describe())
+        exitProcess(2)
+    }
+}
+
+private fun readPackage(base: Path, mainName: String) =
+    readPackage(base, readMainModuleName(mainName))
+
+private fun readMainModuleName(mainName: String) =
+    mainName.split(".").map(::Identifier)

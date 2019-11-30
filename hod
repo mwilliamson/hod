@@ -1,0 +1,5 @@
+#/usr/bin/env sh
+
+set -e
+
+java -cp cli/target/hod-compiler-cli-0.1.0-SNAPSHOT.jar org.zwobble.hod.compiler.cli.HodCli "$@"
