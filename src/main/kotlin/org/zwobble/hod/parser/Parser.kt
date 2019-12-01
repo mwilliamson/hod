@@ -9,6 +9,8 @@ internal fun parseCompilationUnit(tokens: TokenIterator<TokenType>): Compilation
 
     val imports = parseImports(tokens)
 
+    tokens.skip(TokenType.END)
+
     return CompilationUnitNode(
         imports = imports,
         statements = listOf(),
