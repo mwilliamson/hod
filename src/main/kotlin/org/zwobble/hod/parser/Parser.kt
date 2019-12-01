@@ -1,9 +1,6 @@
 package org.zwobble.hod.parser
 
-import org.zwobble.hod.BoolLiteralNode
-import org.zwobble.hod.ExpressionNode
-import org.zwobble.hod.StringLiteralNode
-import org.zwobble.hod.StringSource
+import org.zwobble.hod.*
 import java.nio.CharBuffer
 import java.util.regex.Pattern
 
@@ -14,6 +11,9 @@ internal fun parseExpression(tokens: TokenIterator<TokenType>): ExpressionNode {
         return BoolLiteralNode(value = true, source = source)
     } else if (tokens.trySkip(TokenType.KEYWORD_FALSE)) {
         return BoolLiteralNode(value = false, source = source)
+    } else if (tokens.isNext(TokenType.IDENTIFIER)) {
+        val name = tokens.nextValue(TokenType.IDENTIFIER)
+        return ReferenceNode(name, source)
     } else if (tokens.isNext(TokenType.STRING)) {
         val token = tokens.next()
         val value = decodeCodePointToken(token.value, source = source)
