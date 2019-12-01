@@ -1,12 +1,22 @@
 package org.zwobble.hod
 
-import com.natpryce.hamkrest.Matcher
-import com.natpryce.hamkrest.cast
-import com.natpryce.hamkrest.equalTo
-import com.natpryce.hamkrest.has
+import com.natpryce.hamkrest.*
 
 internal fun isBoolLiteral(value: Boolean): Matcher<ExpressionNode> {
     return cast(has(BoolLiteralNode::value, equalTo(value)))
+}
+
+internal fun isCompilationUnit(imports: Matcher<List<ImportNode>>): Matcher<CompilationUnitNode> {
+    return allOf(
+        has(CompilationUnitNode::imports, imports)
+    )
+}
+
+internal fun isImport(target: Matcher<String>, path: Matcher<String>): Matcher<ImportNode> {
+    return allOf(
+        has(ImportNode::target, target),
+        has(ImportNode::path, path)
+    )
 }
 
 internal fun isReference(name: String): Matcher<ExpressionNode> {

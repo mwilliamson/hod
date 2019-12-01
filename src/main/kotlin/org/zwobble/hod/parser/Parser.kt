@@ -4,6 +4,51 @@ import org.zwobble.hod.*
 import java.nio.CharBuffer
 import java.util.regex.Pattern
 
+internal fun parseCompilationUnit(tokens: TokenIterator<TokenType>): CompilationUnitNode {
+    val source = tokens.location()
+
+    val imports = parseImports(tokens)
+
+    return CompilationUnitNode(
+        imports = imports,
+        source = source
+    )
+}
+
+private fun parseImports(tokens: TokenIterator<TokenType>): List<ImportNode> {
+    return parseMany(
+        parseElement = { parseImport(tokens) },
+        isEnd = { !tokens.isNext(TokenType.KEYWORD_IMPORT) },
+        allowZero = true
+    )
+}
+
+private fun parseImport(tokens: TokenIterator<TokenType>): ImportNode {
+    val source = tokens.location()
+
+    tokens.skip(TokenType.KEYWORD_IMPORT)
+    val target = tokens.nextValue(TokenType.IDENTIFIER)
+    tokens.skip(TokenType.KEYWORD_FROM)
+    val path = parseImportPath(tokens)
+    tokens.skip(TokenType.SYMBOL_SEMICOLON)
+
+    return ImportNode(
+        target = target,
+        path = path,
+        source = source
+    )
+}
+
+internal fun parseImportPath(tokens: TokenIterator<TokenType>): String {
+    return parseMany(
+        parseElement = { tokens.nextValue(TokenType.IDENTIFIER) },
+        parseSeparator = { tokens.skip(TokenType.SYMBOL_DOT) },
+        isEnd = { tokens.isNext(TokenType.SYMBOL_SEMICOLON) },
+        allowZero = false,
+        allowTrailingSeparator = false
+    ).joinToString(".")
+}
+
 internal fun parseExpression(tokens: TokenIterator<TokenType>): ExpressionNode {
     val source = tokens.location()
 
@@ -81,6 +126,51 @@ private fun escapeSequence(code: String, source: StringSource): Char {
         "'" -> return '\''
         "\\" -> return '\\'
         else -> throw UnrecognisedEscapeSequenceError("\\" + code, source = source)
+    }
+}
+
+private fun <T> parseMany(
+    parseElement: () -> T,
+    parseSeparator: () -> Unit = { },
+    isEnd: () -> Boolean,
+    allowTrailingSeparator: Boolean = false,
+    allowZero: Boolean
+) : List<T> {
+    return parseMany(
+        parseElement = parseElement,
+        parseSeparator = parseSeparator,
+        isEnd = isEnd,
+        allowTrailingSeparator = allowTrailingSeparator,
+        allowZero = allowZero,
+        initial = mutableListOf<T>(),
+        reduce = { elements, element -> elements.add(element); elements }
+    )
+}
+
+private fun <T, R> parseMany(
+    parseElement: () -> T,
+    parseSeparator: () -> Unit,
+    isEnd: () -> Boolean,
+    allowTrailingSeparator: Boolean,
+    allowZero: Boolean,
+    initial: R,
+    reduce: (R, T) -> R
+) : R {
+    if (allowZero && isEnd()) {
+        return initial
+    }
+
+    var result = initial
+
+    while (true) {
+        result = reduce(result, parseElement())
+        if (isEnd()) {
+            return result
+        }
+        parseSeparator()
+        if (allowTrailingSeparator && isEnd()) {
+            return result
+        }
     }
 }
 

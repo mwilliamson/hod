@@ -1,4 +1,4 @@
-package org.zwobble.hod.parser;
+package org.zwobble.hod.parser
 
 private fun keyword(tokenType: TokenType, string: String) =
     RegexTokeniser.rule(tokenType, Regex.escape(string) + "(?![A-Za-z0-9])")

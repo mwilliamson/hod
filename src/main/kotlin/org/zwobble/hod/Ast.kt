@@ -6,6 +6,26 @@ internal interface Node {
     val children: List<Node>
 }
 
+
+internal data class CompilationUnitNode(
+    val imports: List<ImportNode>,
+    override val source: Source,
+    override val nodeId: Int = freshNodeId()
+) : Node {
+    override val children: List<Node>
+        get() = imports
+}
+
+internal data class ImportNode(
+    val target: String,
+    val path: String,
+    override val source: Source,
+    override val nodeId: Int = freshNodeId()
+) : Node {
+    override val children: List<Node>
+        get() = listOf()
+}
+
 internal interface ExpressionNode : Node {
     interface Visitor<T> {
         fun visit(node: BoolLiteralNode): T
