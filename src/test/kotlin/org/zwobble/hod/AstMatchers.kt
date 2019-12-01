@@ -26,3 +26,10 @@ internal fun isReference(name: String): Matcher<ExpressionNode> {
 internal fun isStringLiteral(value: String): Matcher<ExpressionNode> {
     return cast(has(StringLiteralNode::value, equalTo(value)))
 }
+
+internal fun isVal(target: Matcher<String>, expression: Matcher<ExpressionNode>): Matcher<CompilationUnitStatementNode> {
+    return cast(allOf(
+        has(ValNode::target, target),
+        has(ValNode::expression, expression)
+    ))
+}

@@ -11,6 +11,7 @@ internal fun parseCompilationUnit(tokens: TokenIterator<TokenType>): Compilation
 
     return CompilationUnitNode(
         imports = imports,
+        statements = listOf(),
         source = source
     )
 }
@@ -27,7 +28,7 @@ private fun parseImport(tokens: TokenIterator<TokenType>): ImportNode {
     val source = tokens.location()
 
     tokens.skip(TokenType.KEYWORD_IMPORT)
-    val target = tokens.nextValue(TokenType.IDENTIFIER)
+    val target = parseTarget(tokens)
     tokens.skip(TokenType.KEYWORD_FROM)
     val path = parseImportPath(tokens)
     tokens.skip(TokenType.SYMBOL_SEMICOLON)
@@ -47,6 +48,20 @@ internal fun parseImportPath(tokens: TokenIterator<TokenType>): String {
         allowZero = false,
         allowTrailingSeparator = false
     ).joinToString(".")
+}
+
+internal fun parseCompilationUnitStatement(tokens: TokenIterator<TokenType>): CompilationUnitStatementNode {
+    val source = tokens.location()
+    tokens.skip(TokenType.KEYWORD_VAL)
+    val target = parseTarget(tokens)
+    tokens.skip(TokenType.SYMBOL_EQUALS)
+    val expression = parseExpression(tokens)
+    tokens.skip(TokenType.SYMBOL_SEMICOLON)
+    return ValNode(
+        target = target,
+        expression = expression,
+        source = source
+    )
 }
 
 internal fun parseExpression(tokens: TokenIterator<TokenType>): ExpressionNode {
@@ -70,6 +85,10 @@ internal fun parseExpression(tokens: TokenIterator<TokenType>): ExpressionNode {
             location = tokens.location()
         )
     }
+}
+
+private fun parseTarget(tokens: TokenIterator<TokenType>): String {
+    return tokens.nextValue(TokenType.IDENTIFIER)
 }
 
 private fun decodeCodePointToken(value: String, source: StringSource): String {
