@@ -52,6 +52,31 @@ internal fun parseImportPath(tokens: TokenIterator<TokenType>): String {
 
 internal fun parseCompilationUnitStatement(tokens: TokenIterator<TokenType>): CompilationUnitStatementNode {
     val source = tokens.location()
+    val nextToken = tokens.peek()
+
+    return when (nextToken.tokenType) {
+        TokenType.KEYWORD_EXPORT -> parseExport(tokens)
+        TokenType.KEYWORD_VAL -> parseVal(tokens)
+        else -> throw UnexpectedTokenException(
+            expected = "compilation unit statement",
+            actual = nextToken.describe(),
+            location = source
+        )
+    }
+}
+
+private fun parseExport(tokens: TokenIterator<TokenType>): ExportNode {
+    val source = tokens.location()
+    tokens.skip(TokenType.KEYWORD_EXPORT)
+    val declaration = parseVal(tokens)
+    return ExportNode(
+        declaration = declaration,
+        source = source
+    )
+}
+
+private fun parseVal(tokens: TokenIterator<TokenType>): ValNode {
+    val source = tokens.location()
     tokens.skip(TokenType.KEYWORD_VAL)
     val target = parseTarget(tokens)
     tokens.skip(TokenType.SYMBOL_EQUALS)

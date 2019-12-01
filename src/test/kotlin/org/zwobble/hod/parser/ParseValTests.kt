@@ -4,6 +4,7 @@ import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
 import org.junit.jupiter.api.Test
 import org.zwobble.hod.isBoolLiteral
+import org.zwobble.hod.isExport
 import org.zwobble.hod.isVal
 
 class ParseValTests {
@@ -19,5 +20,19 @@ class ParseValTests {
             target = equalTo("value"),
             expression = isBoolLiteral(true)
         ))
+    }
+
+    @Test
+    fun canParseExportedVal() {
+        val source = """
+            export val value = true;
+        """.trimIndent()
+
+        val node = parseString(::parseCompilationUnitStatement, source)
+
+        assertThat(node, isExport(isVal(
+            target = equalTo("value"),
+            expression = isBoolLiteral(true)
+        )))
     }
 }

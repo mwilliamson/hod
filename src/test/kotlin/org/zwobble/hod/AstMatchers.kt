@@ -12,6 +12,10 @@ internal fun isCompilationUnit(imports: Matcher<List<ImportNode>>): Matcher<Comp
     )
 }
 
+internal fun isExport(declaration: Matcher<ValNode>): Matcher<CompilationUnitStatementNode> {
+    return cast(has(ExportNode::declaration, declaration))
+}
+
 internal fun isImport(target: Matcher<String>, path: Matcher<String>): Matcher<ImportNode> {
     return allOf(
         has(ImportNode::target, target),

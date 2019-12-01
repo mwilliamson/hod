@@ -28,10 +28,24 @@ internal data class ImportNode(
 
 internal interface CompilationUnitStatementNode : Node {
     interface Visitor<T> {
+        fun visit(node: ExportNode): T
         fun visit(node: ValNode): T
     }
 
     fun <T> accept(visitor: Visitor<T>): T
+}
+
+internal data class ExportNode(
+    val declaration: ValNode,
+    override val source: Source,
+    override val nodeId: Int = freshNodeId()
+) : CompilationUnitStatementNode {
+    override val children: List<Node>
+        get() = listOf()
+
+    override fun <T> accept(visitor: CompilationUnitStatementNode.Visitor<T>): T {
+        return visitor.visit(this)
+    }
 }
 
 internal data class ValNode(
