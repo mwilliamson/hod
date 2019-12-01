@@ -6,9 +6,13 @@ internal fun isBoolLiteral(value: Boolean): Matcher<ExpressionNode> {
     return cast(has(BoolLiteralNode::value, equalTo(value)))
 }
 
-internal fun isCompilationUnit(imports: Matcher<List<ImportNode>>): Matcher<CompilationUnitNode> {
+internal fun isCompilationUnit(
+    imports: Matcher<List<ImportNode>>,
+    statements: Matcher<List<CompilationUnitStatementNode>> = anything
+): Matcher<CompilationUnitNode> {
     return allOf(
-        has(CompilationUnitNode::imports, imports)
+        has(CompilationUnitNode::imports, imports),
+        has(CompilationUnitNode::statements, statements)
     )
 }
 
@@ -31,7 +35,7 @@ internal fun isStringLiteral(value: String): Matcher<ExpressionNode> {
     return cast(has(StringLiteralNode::value, equalTo(value)))
 }
 
-internal fun isVal(target: Matcher<String>, expression: Matcher<ExpressionNode>): Matcher<CompilationUnitStatementNode> {
+internal fun isVal(target: Matcher<String>, expression: Matcher<ExpressionNode> = anything): Matcher<CompilationUnitStatementNode> {
     return cast(allOf(
         has(ValNode::target, target),
         has(ValNode::expression, expression)

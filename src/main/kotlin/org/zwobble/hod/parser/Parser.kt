@@ -8,12 +8,12 @@ internal fun parseCompilationUnit(tokens: TokenIterator<TokenType>): Compilation
     val source = tokens.location()
 
     val imports = parseImports(tokens)
-
+    val statements = parseCompilationUnitStatements(tokens)
     tokens.skip(TokenType.END)
 
     return CompilationUnitNode(
         imports = imports,
-        statements = listOf(),
+        statements = statements,
         source = source
     )
 }
@@ -50,6 +50,14 @@ internal fun parseImportPath(tokens: TokenIterator<TokenType>): String {
         allowZero = false,
         allowTrailingSeparator = false
     ).joinToString(".")
+}
+
+private fun parseCompilationUnitStatements(tokens: TokenIterator<TokenType>): List<CompilationUnitStatementNode> {
+    return parseMany(
+        parseElement = { parseCompilationUnitStatement(tokens) },
+        isEnd = { tokens.isNext(TokenType.END) },
+        allowZero = true
+    )
 }
 
 internal fun parseCompilationUnitStatement(tokens: TokenIterator<TokenType>): CompilationUnitStatementNode {

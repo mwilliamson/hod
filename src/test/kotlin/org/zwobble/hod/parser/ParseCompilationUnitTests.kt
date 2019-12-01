@@ -5,6 +5,7 @@ import com.natpryce.hamkrest.equalTo
 import org.junit.jupiter.api.Test
 import org.zwobble.hod.isCompilationUnit
 import org.zwobble.hod.isImport
+import org.zwobble.hod.isVal
 import org.zwobble.hod.util.isSequence
 
 class ParseCompilationUnitTests {
@@ -32,6 +33,28 @@ class ParseCompilationUnitTests {
             imports = isSequence(
                 isImport(target = equalTo("One"), path = equalTo("Example.One")),
                 isImport(target = equalTo("Other"), path = equalTo("Example.Two"))
+            )
+        ))
+    }
+
+    @Test
+    fun canParseStatementsAfterImports() {
+        val source = """
+            import One from Example.One;
+
+            val x = true;
+            val y = false;
+        """.trimIndent()
+
+        val node = parseString(::parseCompilationUnit, source)
+
+        assertThat(node, isCompilationUnit(
+            imports = isSequence(
+                isImport(target = equalTo("One"), path = equalTo("Example.One"))
+            ),
+            statements = isSequence(
+                isVal(target = equalTo("x")),
+                isVal(target = equalTo("y"))
             )
         ))
     }
